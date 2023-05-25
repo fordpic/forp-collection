@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IWhitelist.sol";
 
-contract Forps is ERC721Enumberable, Ownable {
+contract Forps is ERC721Enumerable, Ownable {
     // Public Variables
     string _baseTokenURI;
     bool public _paused;
@@ -79,7 +79,7 @@ contract Forps is ERC721Enumberable, Ownable {
         address _owner = owner();
         uint256 amount = address(this).balance;
 
-        (bool sent, ) = _owner.call{vlaue: amount}("");
+        (bool sent, ) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
