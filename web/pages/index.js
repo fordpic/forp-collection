@@ -1,118 +1,175 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
+import React, { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
+import Web3Modal from 'web3modal';
+import { Contract, providers, utils } from 'ethers';
 
 export default function Home() {
-  return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	// State
+	const [walletConnected, setWalletConnected] = useState(false);
+	const [presaleStarted, setPresaleStarted] = useState(false);
+	const [presaleEnded, setPresaleEnded] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [isOwner, setIsOwner] = useState(false);
+	const [tokenIdsMinted, setTokenIdsMinted] = useState('0');
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	// Ref for modal to persist while on page
+	const web3ModalRef = useRef();
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	// Functions
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+	// Mint a Forp in presale (must be whitelisted)
+	const presaleMint = async () => {
+		try {
+			const signer = await getProviderOrSigner(true);
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, signer);
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
+			const txn = await forpsContract.presaleMint({
+				value: utils.parseEther('0.01'),
+			});
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+			setLoading(true);
+			await txn.wait();
+			setLoading(false);
+			window.alert('You have successfully minted a Forp!');
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Mint a Forp after the presale (if still available)
+	const publicMint = async () => {
+		try {
+			const signer = await getProviderOrSigner(true);
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, signer);
+
+			const txn = await forpsContract.publicMint({
+				value: utils.parseEther('0.01'),
+			});
+
+			setLoading(true);
+			await txn.wait();
+			setLoading(false);
+			window.alert('You have successfully minted a Forp!');
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Checks if presale has started by querying the variable
+	const checkIfPresaleStarted = async () => {
+		try {
+			// Read-only
+			const provider = await getProviderOrSigner();
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, provider);
+
+			const _presaleStarted = await forpsContract.presaleStarted();
+			if (!_presaleStarted) await getOwner();
+
+			setPresaleStarted(_presaleStarted);
+			return _presaleStarted;
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Checks if presale has ended by querying the variable
+	const checkIfPresaleEnded = async () => {
+		try {
+			const provider = await getProviderOrSigner();
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, provider);
+
+			const _presaleEnded = await forpsContract.presaleEnded();
+			// _presaleEnded is a BN, must compare return value in seconds with presaleEnded timestamp to determine
+			const hasEnded = _presaleEnded.lt(Math.floor(Date.now() / 1000));
+			hasEnded ? setPresaleEnded(true) : setPresaleEnded(false);
+
+			return hasEnded;
+		} catch (err) {
+			console.error(err);
+			return false;
+		}
+	};
+
+	// Starts the presale
+	const startPresale = async () => {
+		try {
+			const signer = await getProviderOrSigner(true);
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, signer);
+
+			const txn = await forpsContract.startPresale();
+
+			setLoading(true);
+			await txn.wait();
+			setLoading(false);
+			await checkIfPresaleStarted();
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Grabs owner of contract
+	const getOwner = async () => {
+		try {
+			const provider = await getProviderOrSigner();
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, provider);
+
+			const _owner = await forpsContract.owner();
+			// Grab signer now to extract address of currently connected acct
+			const signer = await getProviderOrSigner(true);
+			const address = await signer.getAddress();
+
+			if (address.toLowerCase() === _owner.toLowerCase()) setIsOwner(true);
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Grabs total # of Forps currently minted (via tokenId)
+	const getTokenIdsMinted = async () => {
+		try {
+			const provider = await getProviderOrSigner();
+			const forpsContract = new Contract(FORPS_ADDRESS, abi, provider);
+
+			const _tokenIds = await forpsContract.tokenIds();
+			// _tokenIds is a BN, must convert to string first
+			setTokenIdsMinted(_tokenIds.toString());
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	// Wallet & RPC Connection Helpers
+
+	// Get signer or provider RPC object
+	const getProviderOrSigner = async (needSigner = false) => {
+		const provider = await web3ModalRef.current.connect();
+		const web3Provider = new providers.Web3Provider(provider);
+
+		// Make sure user connected to Goerli
+		const { chainId } = await web3Provider.getNetwork();
+		if (chainId !== 5) {
+			window.alert('Please change the network to Goerli');
+			throw new Error('Please change the network to Goerli');
+		}
+
+		// Snag signer if needed
+		if (needSigner) {
+			const signer = web3Provider.getSigner();
+			return signer;
+		}
+
+		return web3Provider;
+	};
+
+	// Connect a MM wallet
+	const connectWallet = async () => {
+		try {
+			await getProviderOrSigner();
+			setWalletConnected(true);
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	return;
 }
