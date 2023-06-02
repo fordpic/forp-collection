@@ -4,7 +4,7 @@ import Web3Modal from 'web3modal';
 import { Contract, providers, utils } from 'ethers';
 
 export default function Home() {
-	// State
+	// STATE
 	const [walletConnected, setWalletConnected] = useState(false);
 	const [presaleStarted, setPresaleStarted] = useState(false);
 	const [presaleEnded, setPresaleEnded] = useState(false);
@@ -15,8 +15,7 @@ export default function Home() {
 	// Ref for modal to persist while on page
 	const web3ModalRef = useRef();
 
-	// Functions
-
+	// FUNCTIONS
 	// Mint a Forp in presale (must be whitelisted)
 	const presaleMint = async () => {
 		try {
@@ -138,8 +137,52 @@ export default function Home() {
 		}
 	};
 
-	// Wallet & RPC Connection Helpers
+	// Helper function for conditional rendering
+	const renderBtn = () => {
+		// If user is not connected
+		if (!walletConnected) {
+			return <button onClick={connectWallet}>Connect Your Wallet</button>;
+		}
 
+		// When loading
+		if (loading) {
+			return <button>Loading...</button>;
+		}
+
+		// If connected user is owner & presale hasn't started, allow them to start
+		if (isOwner && !presaleStarted) {
+			return <button onClick={startPresale}>Start The Presale!</button>;
+		}
+
+		// Presale hasn't started & connected user is NOT the owner
+		if (!presaleStarted) {
+			return (
+				<div>
+					<div>Presale hasn&#39;t started yet!</div>
+				</div>
+			);
+		}
+
+		// Presale currently going on, allow presale minting for whitelisted addresses
+		if (presaleStarted && !presaleEnded) {
+			return (
+				<div>
+					<div>
+						Presale has started! If your address is whitelisted, you may mint a
+						Forp now while supplies last!
+					</div>
+					<button onClick={presaleMint}>Presale Mint</button>
+				</div>
+			);
+		}
+
+		// Public mint
+		if (presaleStarted && presaleEnded) {
+			return <button onClick={publicMint}>Mint</button>;
+		}
+	};
+
+	// WALLET & RPC CONNECTION HELPERS
 	// Get signer or provider RPC object
 	const getProviderOrSigner = async (needSigner = false) => {
 		const provider = await web3ModalRef.current.connect();
