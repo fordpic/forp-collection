@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Web3Modal from 'web3modal';
 import { Contract, providers, utils } from 'ethers';
+import { FORPS_ADDRESS, abi } from '../constants/index';
 
 export default function Home() {
 	// STATE
@@ -137,28 +138,44 @@ export default function Home() {
 		}
 	};
 
-	// Helper function for conditional rendering
+	// Helper function for conditional UI rendering
 	const renderBtn = () => {
 		// If user is not connected
 		if (!walletConnected) {
-			return <button onClick={connectWallet}>Connect Your Wallet</button>;
+			return (
+				<button
+					className='h-8 p-8 mb-8 rounded-lg flex mx-auto items-center text-white text-center bg-blue-600'
+					onClick={connectWallet}>
+					Connect Your Wallet
+				</button>
+			);
 		}
 
 		// When loading
 		if (loading) {
-			return <button>Loading...</button>;
+			return (
+				<button className='h-8 p-8 mb-8 rounded-lg flex mx-auto items-center text-white text-center bg-blue-600'>
+					Loading...
+				</button>
+			);
 		}
 
 		// If connected user is owner & presale hasn't started, allow them to start
 		if (isOwner && !presaleStarted) {
-			return <button onClick={startPresale}>Start The Presale!</button>;
+			return (
+				<button
+					className='h-8 p-8 mb-8 rounded-lg flex mx-auto items-center text-white text-center bg-blue-600'
+					onClick={startPresale}>
+					Start The Presale!
+				</button>
+			);
 		}
 
 		// Presale hasn't started & connected user is NOT the owner
 		if (!presaleStarted) {
 			return (
 				<div>
-					<div>Presale hasn&#39;t started yet!</div>
+					<div className=''>Presale hasn&#39;t started yet!</div>
 				</div>
 			);
 		}
@@ -167,18 +184,28 @@ export default function Home() {
 		if (presaleStarted && !presaleEnded) {
 			return (
 				<div>
-					<div>
+					<div className=''>
 						Presale has started! If your address is whitelisted, you may mint a
 						Forp now while supplies last!
 					</div>
-					<button onClick={presaleMint}>Presale Mint</button>
+					<button
+						className='h-8 p-8 mb-8 rounded-lg flex mx-auto items-center text-white text-center bg-blue-600'
+						onClick={presaleMint}>
+						Presale Mint
+					</button>
 				</div>
 			);
 		}
 
 		// Public mint
 		if (presaleStarted && presaleEnded) {
-			return <button onClick={publicMint}>Mint</button>;
+			return (
+				<button
+					className='h-8 p-8 mb-8 rounded-lg flex mx-auto items-center text-white text-center bg-blue-600'
+					onClick={publicMint}>
+					Mint
+				</button>
+			);
 		}
 	};
 
@@ -249,5 +276,51 @@ export default function Home() {
 		}
 	}, [walletConnected]);
 
-	return;
+	return (
+		<div>
+			<Head>
+				<title>Forps</title>
+				<meta name='description' content='forps' />
+				<link rel='icon' href='/favicon.ico' />
+			</Head>
+
+			<div className='min-h-screen flex flex-col text-center justify-center bg-gradient-to-r from-violet-500 to-fuchsia-500'>
+				<div>
+					<img src='/forp.jpg' className='h-[70%] mx-auto' />
+					<h1 className='text-4xl font-extrabold'>Welcome to Forps!</h1>
+
+					<div className='p-4 m-12 mx-40 font-semibold text-white'>
+						<span className='font-bold text-blue-600'>Forps</span> is a NFT
+						collection that is built entirely for fun and lives on the Goerli
+						testnet. They are a not-so-subtle joke of me{' '}
+						<span className='font-bold text-blue-600'>(Ford)</span> and the hope
+						is to see all of these minted out one day. Once minted, you can swap
+						and trade Forps however you see fit!
+					</div>
+
+					<div className='p-4 m-12 mx-40 font-semibold text-white'>
+						If whitelisted, simply connect your wallet, switch the network to
+						Goerli, and mint your{' '}
+						<span className='font-bold text-blue-600'>Forp</span>!
+					</div>
+
+					<div className='p-4 m-12 mx-40 font-semibold text-white'>
+						If you have not joined the whitelist yet, visit the whitelist site{' '}
+						<a
+							className='font-bold cursor-pointer text-green-500'
+							href='https://whitelist-site-swart.vercel.app/'>
+							here
+						</a>{' '}
+						while supplies last!
+					</div>
+
+					<div className='m-6 font-semibold text-white'>
+						There are {tokenIdsMinted}/20{' '}
+						<span className='font-bold text-blue-600'>Forps</span> remaining!
+					</div>
+					{renderBtn()}
+				</div>
+			</div>
+		</div>
+	);
 }
