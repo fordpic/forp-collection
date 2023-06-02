@@ -171,5 +171,40 @@ export default function Home() {
 		}
 	};
 
+	useEffect(() => {
+		if (!walletConnected) {
+			web3ModalRef.current = new Web3Modal({
+				network: 'goerli',
+				providerOptions: {},
+				disableInjectedProvider: false,
+			});
+
+			connectWallet();
+
+			// Check on presale status
+			const _presaleStarted = checkIfPresaleEnded();
+			if (_presaleStarted) checkIfPresaleStarted();
+
+			getTokenIdsMinted();
+
+			// Set an interval to check on presale
+			const presaleEndedInterval = setInterval(async function () {
+				const _presaleStarted = await checkIfPresaleStarted();
+
+				if (_presaleStarted) {
+					const _presaleEnded = await checkIfPresaleEnded();
+					if (_presaleEnded) {
+						clearInterval(presaleEndedInterval);
+					}
+				}
+			}, 5 * 1000); // 5 seconds
+
+			// Set an interval to get # of tokenIds
+			setInterval(async function () {
+				await getTokenIdsMinted();
+			}, 5 * 1000); // 5 seconds
+		}
+	}, [walletConnected]);
+
 	return;
 }
