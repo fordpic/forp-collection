@@ -1,4 +1,4 @@
-export const FORPS_ADDRESS = '0x4f42B17A4f0239Ee850cF179f81Cfcac40F7457A';
+export const FORPS_ADDRESS = '0x0bD2E78F11654b341916A48df339DdB1bb839720';
 export const abi = [
 	{
 		inputs: [
