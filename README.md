@@ -6,6 +6,8 @@ If users are not on the whitelist for Forps but would like to mint one, they can
 
 The UI will automatically let users know if they are eligible to mint a Forp or not; **each wallet can mint a maximum of one Forp NFT**.
 
+Forps are viewable on Opensea via an API endpoint in the repo that serves the metadata upon request; be sure to check out your brand new Forp on their site once you've minted!
+
 ## Technologies Used
 
 - NextJS for the web framework
@@ -13,6 +15,7 @@ The UI will automatically let users know if they are eligible to mint a Forp or 
 - TailwindCSS for frontend styling
 - Ethers for the web3 frontend library
 - Hardhat for smart contract deployment
+- Quicknode for the RPC endpoint
 
 ## Next Steps
 
