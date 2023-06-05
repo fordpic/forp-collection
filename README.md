@@ -1,6 +1,6 @@
 # The Forps NFT Collection
 
-This repo contains the code for the core contract of the Forps NFT collection, as well as the frontend code for the UI. If a user has already joined the whitelist, they can directly mint their Forp by simply connecting their whitelisted wallet to the site and selecting mint.
+This repo contains the code for the core contract of the Forps NFT collection, as well as the frontend code for the UI. If a user has already joined the whitelist, they can directly mint their Forp by simply connecting their whitelisted wallet to the site, connecting to Goerli, and selecting mint.
 
 If users are not on the whitelist for Forps but would like to mint one, they can join here (while spots are available): [Forps Whitelist Site](whitelist-site-swart.vercel.app)
 
